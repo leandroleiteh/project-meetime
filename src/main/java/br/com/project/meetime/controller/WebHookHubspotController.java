@@ -58,6 +58,9 @@ public class WebHookHubspotController extends BaseController implements Webhooks
             System.out.println("App ID: " + contact.getAppId());
             System.out.println("Occurred At: " + contact.getOccurredAt());
             System.out.println("Attempt Number: " + contact.getAttemptNumber());
+            System.out.println("Event ID: " + contact.getEventId());
+            System.out.println("Subscription ID: " + contact.getSubscriptionId());
+            System.out.println("Portal ID: " + contact.getPortalId());
             System.out.println("-------------------------------");
         });
     }
