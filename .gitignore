@@ -1,0 +1,19 @@
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Intellij
+.idea/
+.idea/*
+*.iml
+*.iws
+
+# Maven
+log/
+target/
+
+# MySql
+mysql_data/
+
+.vscode
