@@ -185,12 +185,10 @@ definitions:
         type: string
 
   WebhookHubspotCreateContactRequest:
-    type: object
-    properties:
-      results:
-        type: array
-        items:
-          $ref: '#/definitions/WebhookHubspotCreateContact'
+    type: array
+    items:
+      $ref: '#/definitions/WebhookHubspotCreateContact'
+
 
   WebhookHubspotCreateContact:
     type: object
@@ -214,6 +212,12 @@ definitions:
         format: int64
       attemptNumber:
         type: integer
+      subscriptionType:
+        type: string
+      changeFlag:
+        type: string
+      sourceId:
+        type: string
 
   Error:
     type: array

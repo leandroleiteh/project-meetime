@@ -5,28 +5,35 @@ import br.com.project.meetime.enums.ActionEnum;
 import br.com.project.meetime.enums.HubspotEndpointEnum;
 import br.com.project.meetime.enums.StatusRequestEnum;
 import br.com.project.meetime.util.LogUtil;
-import br.com.project.rest.v1.model.WebhookHubspotCreateContactRequest;
+import br.com.project.rest.v1.api.WebhooksApi;
+import br.com.project.rest.v1.model.WebhookHubspotCreateContact;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
 @Log4j2
-public class WebHookHubspotController extends BaseController {
+public class WebHookHubspotController extends BaseController implements WebhooksApi {
 
     @CrossOrigin(origins = "*", methods = RequestMethod.POST)
     @PostMapping("/webhook/contact-creation")
-    public ResponseEntity<Void> handleWebhook(@RequestBody final String contactRequest) {
+    @Override
+    public ResponseEntity<Void> handleWebhook(List<WebhookHubspotCreateContact> contactRequest) {
 
         long initExecutionTime = System.currentTimeMillis();
         log.info(LogUtil.buildMessage("<< [INIT REQUEST][WEBHOOK HUBSPOT] PROCESSING >>")
                 .with(ObservabilityTagConstant.Info.PAGE, HubspotEndpointEnum.WEBHOOK_CONTACT_CREATION.getPath())
                 .with(ObservabilityTagConstant.Info.ACTION, ActionEnum.PROCESSING));
 
-        System.out.println(contactRequest.toString());
+        printWebhookContacts(contactRequest);
 
         log.info(LogUtil.buildMessage("<< [END REQUEST][WEBHOOK HUBSPOT] PROCESSING, SUCCESSFUL >>")
                 .with(ObservabilityTagConstant.Info.PAGE, HubspotEndpointEnum.WEBHOOK_CONTACT_CREATION.getPath())
@@ -38,9 +45,9 @@ public class WebHookHubspotController extends BaseController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    private void printWebhookContacts(WebhookHubspotCreateContactRequest contactRequest) {
+    private void printWebhookContacts(List<WebhookHubspotCreateContact> contactRequest) {
 
-        contactRequest.getResults().forEach(contact -> {
+        contactRequest.forEach(contact -> {
 
             System.out.println("-------------------------------");
             System.out.println("Object ID: " + contact.getObjectId());
