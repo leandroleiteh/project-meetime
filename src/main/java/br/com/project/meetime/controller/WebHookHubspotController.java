@@ -18,17 +18,38 @@ import org.springframework.web.bind.annotation.*;
 @Log4j2
 public class WebHookHubspotController extends BaseController implements WebhooksApi {
 
+//    @CrossOrigin(origins = "*", methods = RequestMethod.POST)
+//    @PostMapping("/webhook/contact-creation")
+//    @Override
+//    public ResponseEntity<Void> handleWebhook(@RequestBody final WebhookHubspotCreateContactRequest contactRequest) {
+//
+//        long initExecutionTime = System.currentTimeMillis();
+//        log.info(LogUtil.buildMessage("<< [INIT REQUEST][WEBHOOK HUBSPOT] PROCESSING >>")
+//                .with(ObservabilityTagConstant.Info.PAGE, HubspotEndpointEnum.WEBHOOK_CONTACT_CREATION.getPath())
+//                .with(ObservabilityTagConstant.Info.ACTION, ActionEnum.PROCESSING));
+//
+//        printWebhookContacts(contactRequest);
+//
+//        log.info(LogUtil.buildMessage("<< [END REQUEST][WEBHOOK HUBSPOT] PROCESSING, SUCCESSFUL >>")
+//                .with(ObservabilityTagConstant.Info.PAGE, HubspotEndpointEnum.WEBHOOK_CONTACT_CREATION.getPath())
+//                .with(ObservabilityTagConstant.Info.ACTION, ActionEnum.PROCESSING)
+//                .with(ObservabilityTagConstant.Info.STATUS_REQUEST, StatusRequestEnum.SUCCESS)
+//                .with(ObservabilityTagConstant.Info.RESPONSE_TIME,
+//                        (System.currentTimeMillis() - initExecutionTime)));
+//
+//        return ResponseEntity.status(HttpStatus.CREATED).build();
+//    }
+//
     @CrossOrigin(origins = "*", methods = RequestMethod.POST)
     @PostMapping("/webhook/contact-creation")
-    @Override
-    public ResponseEntity<Void> handleWebhook(@RequestBody final WebhookHubspotCreateContactRequest contactRequest) {
+    public ResponseEntity<Void> handleWebhook(@RequestBody final String contactRequest) {
 
         long initExecutionTime = System.currentTimeMillis();
         log.info(LogUtil.buildMessage("<< [INIT REQUEST][WEBHOOK HUBSPOT] PROCESSING >>")
                 .with(ObservabilityTagConstant.Info.PAGE, HubspotEndpointEnum.WEBHOOK_CONTACT_CREATION.getPath())
                 .with(ObservabilityTagConstant.Info.ACTION, ActionEnum.PROCESSING));
 
-        printWebhookContacts(contactRequest);
+        log.info(contactRequest.toString());
 
         log.info(LogUtil.buildMessage("<< [END REQUEST][WEBHOOK HUBSPOT] PROCESSING, SUCCESSFUL >>")
                 .with(ObservabilityTagConstant.Info.PAGE, HubspotEndpointEnum.WEBHOOK_CONTACT_CREATION.getPath())
