@@ -325,3 +325,7 @@ Como foi apresentado acima, foram criados logs específicos no controller para a
 
 - **spring-boot-maven-plugin**  
   Empacota a aplicação como um arquivo `.jar` executável com todas as dependências (fat JAR).
+
+---
+
+gpt foi usado para ajuda na criação da doc
