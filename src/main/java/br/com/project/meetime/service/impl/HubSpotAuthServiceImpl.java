@@ -62,6 +62,9 @@ public class HubSpotAuthServiceImpl implements HubSpotAuthService {
     @Override
     public String getAuthorizationUrl() {
 
+        log.info("URI Redirect: " + redirectUri);
+        log.info("Defined Scope: " + scope);
+
         return UriComponentsBuilder.fromHttpUrl(authorizationUri)
                 .queryParam(CLIENT_ID, clientId)
                 .queryParam(REDIRECT_URI, redirectUri)
