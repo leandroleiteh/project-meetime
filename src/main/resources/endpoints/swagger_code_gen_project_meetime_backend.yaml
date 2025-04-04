@@ -1,0 +1,228 @@
+swagger: '2.0'
+info:
+  version: '0.0.1'
+  title: Project-Meetime-Backend
+  description: Expose all endpoints of project MEETIME 2025
+  contact:
+    name: Leandro
+    email: leandroluz201616@gmail.com
+host: localhost:8080
+basePath: /api/v1
+schemes:
+  - http
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+
+paths:
+  /oauth2/authorize:
+    get:
+      tags:
+        - OAuth
+      summary: Generate the authorization URL for HubSpot OAuth
+      description: Generates the URL to start the OAuth flow with HubSpot.
+      operationId: generateAuthorizationUrl
+      responses:
+        '200':
+          description: Access token obtained successfully
+          schema:
+            type: string
+            example: "https://app.hubspot.com/oauth/authorize?client_id=998bfe92-a1u5-4cc6-ba2c-7ac56a328003&redirect_uri=http://localhost:8080/api/v1/oauth2/callback&scope=crm.objects.contacts.write%20oauth%20crm.objects.contacts.read"
+        '302':
+          description: Redirect to HubSpot authorization URL
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /oauth2/callback:
+    get:
+      tags:
+        - OAuth
+      summary: Process OAuth callback from HubSpot
+      description: |
+        Handles the callback from HubSpot and exchanges the authorization code for an access token.
+        The client must provide the `code` received from HubSpot.
+      operationId: handleOAuthCallback
+      parameters:
+        - in: query
+          name: code
+          description: Authorization code provided by HubSpot
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Access token obtained successfully
+          schema:
+            $ref: "#/definitions/AccessTokenHubspotResponse"
+          x-java-type: CompletableFuture
+        "400":
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/Error"
+        "401":
+          description: Authorization Failed
+          schema:
+            $ref: "#/definitions/Error"
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: "#/definitions/Error"
+
+  /contact:
+    post:
+      tags:
+        - Contacts
+      summary: Create a new contact in HubSpot
+      description: Creates a new contact in HubSpot CRM.
+      operationId: createContact
+      parameters:
+        - in: header
+          name: Authorization
+          description: Access token
+          required: true
+          type: string
+        - in: body
+          name: Contact
+          description: Contact details
+          required: true
+          schema:
+            $ref: '#/definitions/ContactRequest'
+      responses:
+        '201':
+          description: Contact created successfully
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        '401':
+          description: Authorization Failed
+          schema:
+            $ref: '#/definitions/Error'
+        '429':
+          description: Too many requests
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /webhook/contact-creation:
+    post:
+      tags:
+        - Webhooks
+      summary: Handle HubSpot contact creation webhook
+      description: Processes events of type "contact.creation" sent by HubSpot webhook.
+      operationId: handleWebhook
+      parameters:
+        - in: body
+          name: WebhookEvent
+          description: Webhook event data
+          required: true
+          schema:
+            $ref: '#/definitions/WebhookHubspotCreateContactRequest'
+      responses:
+        '200':
+          description: Event processed successfully
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        '401':
+          description: Authorization Failed
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Error'
+
+securityDefinitions:
+  BearerAuth:
+    type: apiKey
+    name: Authorization
+    in: header
+    description: >
+      Insert the JWT token in the format: "Bearer {token}"
+
+security:
+  - BearerAuth: []
+
+definitions:
+
+  AccessTokenHubspotResponse:
+    type: object
+    properties:
+      access_token:
+        type: string
+        example: "eyJhbGciOiJIUzI1..."
+      token_type:
+        type: string
+        example: "Bearer"
+      expires_in:
+        type: integer
+        example: 3600
+
+  ContactRequest:
+    type: object
+    properties:
+      properties:
+        $ref: '#/definitions/Contact'
+
+  Contact:
+    type: object
+    properties:
+      firstname:
+        type: string
+      lastname:
+        type: string
+      email:
+        type: string
+
+  WebhookHubspotCreateContactRequest:
+    type: object
+    properties:
+      results:
+        type: array
+        items:
+          $ref: '#/definitions/WebhookHubspotCreateContact'
+
+  WebhookHubspotCreateContact:
+    type: object
+    properties:
+      objectId:
+        type: integer
+        format: int64
+      changeSource:
+        type: string
+      eventId:
+        type: integer
+        format: int64
+      subscriptionId:
+        type: integer
+      portalId:
+        type: integer
+      appId:
+        type: integer
+      occurredAt:
+        type: integer
+        format: int64
+      attemptNumber:
+        type: integer
+
+  Error:
+    type: array
+    items:
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
