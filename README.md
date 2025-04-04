@@ -1,173 +1,325 @@
-# Project ERP - Backend
+# 📊 Project-Meetime-Backend
 
-## Descrição
+Integração reativa com a API do **HubSpot CRM**, construída com **Java + Spring Boot + WebClient**, que permite:
 
-**Project ERP - Backend** é um sistema backend desenvolvido com **Spring Boot 3.4.2** para suportar um sistema de ERP (Enterprise Resource Planning). O projeto utiliza uma arquitetura moderna, seguindo boas práticas de desenvolvimento, e conta com uma documentação de API baseada em **Swagger/OpenAPI**.
-
----
-
-## Tecnologias Utilizadas
-
-- **Java 21**
-- **Spring Boot 3.4.2**
-- **Maven**
-- **Swagger/OpenAPI**
-- **Spring Security** (JWT Auth)
-- **JPA/Hibernate**
-- **Banco de Dados H2/MySQL**
-- **Lombok**
-- **MapStruct**
-- **Apache Commons**
-- **Apache POI**
+✅ Autenticação via OAuth 2.0  
+✅ Criação de contatos na plataforma HubSpot  
+✅ Recebimento de eventos via Webhooks (ex: contato criado)
 
 ---
 
-## Estrutura do Projeto
+## 🚀 Como usar a aplicação
 
-O projeto segue uma estrutura modularizada para facilitar a manutenção e expansão.
+### 1. Faça um Fork do repositório
 
+> Repositório oficial:  
+👉 [https://github.com/leandroleiteh/project-meetime](https://github.com/leandroleiteh/project-meetime)
+
+Clique em **Fork** no topo da página para criar sua própria cópia.
+
+---
+
+### 2. Crie uma conta gratuita no Railway
+
+Acesse: [https://railway.app](https://railway.app)
+- Faça login com GitHub
+- Crie um novo projeto
+- Clique em **Deploy from GitHub Repo**
+- Escolha o fork que você criou (`project-meetime`)
+- Railway irá automaticamente identificar o projeto como uma aplicação Java e iniciar o deploy.
+
+---
+
+### 3. Configure variáveis de ambiente
+
+Clique na aba **Variables** no projeto Railway e adicione:
+
+| Chave                   | Valor                                                                                  |
+|------------------------|----------------------------------------------------------------------------------------|
+| `HUBSPOT_CLIENT_ID`    | (sua client id do app criado no HubSpot)   **OBTERÁ POS CONTA NA HUBSPOT**                 |
+| `HUBSPOT_CLIENT_SECRET`| (sua client secret do app criado no HubSpot) **OBTERÁ POS CONTA NA HUBSPOT**               |
+| `HUBSPOT_REDIRECT_URI` | `https://<SEU_DOMINIO>.railway.app/api/v1/oauth2/callback` **CRIARÁ POS CONTA NA HUBSPOT** |
+| `HUBSPOT_SCOPE`        | `crm.objects.contacts.write oauth crm.objects.contacts.read`                           |
+
+> ❗ Esses valores **não são os do exemplo acima**, você deve usar os gerados na sua conta HubSpot.
+
+---
+
+### 4. Crie um App no HubSpot
+
+1. Acesse: [https://developers.hubspot.com](https://developers.hubspot.com)
+2. Crie uma **conta de desenvolvedor gratuita**
+3. Crie um **novo app**:
+    - Vá em **Apps**
+    - Clique em **Create app**
+    - Configure os **Redirect URIs** com a URL pública do Railway (ex: `https://meetime-app.up.railway.app/api/v1/oauth2/callback`)
+4. Copie o `client_id` e `client_secret`
+5. Registre escopos:
+    - `crm.objects.contacts.read`
+    - `crm.objects.contacts.write`
+    - `oauth`
+6. Crie uma conta **sandbox/test** associada ao app
+7. **Habilite webhooks** e registre o evento `contact.creation` com a URL:  
+   `https://<SEU_DOMINIO>.railway.app/api/v1/webhook/contact-creation`
+
+---
+
+### 5. Acesse os endpoints
+
+**Base URL (Railway):**  
+`https://<seu_projeto>.railway.app/api/v1`
+
+---
+
+## 💻 Rodando Localmente
+
+Você também pode executar a aplicação localmente (exceto o Webhook):
+
+### Pré-requisitos:
+- Java 17+
+- Maven
+- Necessário cumprir os passos de criar as contas e configurações na HubSpot
+
+### Passos:
+
+```bash
+git clone https://github.com/leandroleiteh/project-meetime.git
+cd project-meetime
+``` 
+### 🔧 Configurar `application.properties` local:
+
+Crie ou edite o arquivo `src/main/resources/application.properties` com as seguintes propriedades:
+
+```properties
+# Hubspot
+hubspot.client-id=SEU_CLIENT_ID
+hubspot.client-secret=SEU_CLIENT_SECRET
+hubspot.redirect-uri=http://localhost:8080/api/v1/oauth2/callback
+hubspot.scope=crm.objects.contacts.write oauth crm.objects.contacts.read
 ```
-project-erp/
-├── src/
-│ ├── main/
-│ │ ├── java/br/com/project/
-│ │ │ ├── config/ # Configurações do sistema
-│ │ │ ├── security/ # Implementação de segurança com JWT
-│ │ │ ├── constant/ # Constantes do sistema
-│ │ │ ├── controller/ # Controllers da API
-│ │ │ ├── entity/ # Entidades do banco de dados
-│ │ │ ├── enums/ # Enumerações utilizadas no sistema
-│ │ │ ├── exception/ # Tratamento de exceções
-│ │ │ ├── helper/ # Classes auxiliares
-│ │ │ ├── mapper/ # Mapeamento de entidades e DTOs
-│ │ │ ├── repository/ # Persistência de dados
-│ │ │ ├── service/ # Regras de negócio
-│ │ │ ├── util/ # Utilitários e helpers
-│ │ ├── resources/
-│ │ │ ├── application.properties # Configuração da aplicação
-│ │ │ ├── swagger/ # Definição dos endpoints
-└── pom.xml # Configuração do Maven
+### ⚠️ Atenção: o Webhook não funciona localmente, pois exige HTTPS.
+**Para testes locais, você pode utilizar ferramentas como ngrok.**
+
+#### Execute a aplicação da maneira que preferir. IDE ou linha de comando : ```./mvnw spring-boot:run```
+
+---
+
+## 🔐 Autenticação OAuth2
+
+### 🔁 Iniciar fluxo de autenticação
+
+**Endpoint:**
+```
+GET /api/v1/oauth2/authorize
+```
+
+**Descrição:**
+Devolve a URL completa para autenticação junto com callback.
+
+![img.png](img.png)
+
+---
+
+### 🎯 Callback OAuth2
+
+**Endpoint:**
+```
+GET /api/v1/oauth2/callback?code={authorization_code}
+```
+
+**Descrição:**
+Após se autenticar, recebe o `authorization_code` do HubSpot e troca por um `access_token`.
+
+*Lembrando, quando receber o response do método ```/api/v1/oauth2/authorize```, basta usar o mesmo para se autenticar e automaticamente ele retorna neste endpoint de callback fazendo a troca pelo "access_token"
+
+**Exemplo de resposta:**
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1...",
+  "token_type": "Bearer",
+  "expires_in": 3600
+}
 ```
 
 ---
 
-## Dependências do Projeto
+## 👤 Criar contato
 
-O projeto possui diversas dependências configuradas no arquivo `pom.xml`, listadas abaixo:
+**Endpoint:**
+```
+POST /api/v1/contact
+```
 
-### **Spring Boot**
-- `spring-boot-starter-data-jpa` → Suporte ao Hibernate/JPA
-- `spring-boot-starter-security` → Segurança com Spring Security
-- `spring-boot-starter-validation` → Validação de dados
-- `spring-boot-starter-web` → Desenvolvimento de APIs REST
+**Headers:**
+```http
+Authorization: {access_token}
+Content-Type: application/json
+```
 
-### **Banco de Dados**
-- `h2` → Banco de dados em memória para testes
-- `mysql-connector-j` → Driver para conexão com MySQL
+**Payload:**
+```json
+{
+  "properties": {
+    "firstname": "John",
+    "lastname": "Doe",
+    "email": "johndoe@example.com"
+  }
+}
+```
+![img_5.png](img_5.png)
+![img_6.png](img_6.png)
 
-### **Ferramentas de Desenvolvimento**
-- `lombok` → Redução de boilerplate code
-- `spring-boot-devtools` → Hot reload para desenvolvimento
+**Respostas:**
 
-### **Testes**
-- `spring-boot-starter-test` → Frameworks de testes integrados
-- `spring-security-test` → Testes para Spring Security
-
-### **Documentação (Swagger/OpenAPI)**
-- `swagger-core`
-- `swagger-annotations`
-- `jackson-databind-nullable`
-- `swagger-codegen-maven-plugin`
-
-### **Utilidades**
-- `commons-lang` → Utilitários para manipulação de Strings, Numbers, etc.
-- `commons-collections` → Manipulação de coleções Java
-- `commons-codec` → Codificação e decodificação de dados
-- `apache-poi` → Manipulação de arquivos Excel
-
-### **Mapeamento de Objetos (DTOs)**
-- `mapstruct`
-- `mapstruct-processor`
+- `201 Created` – Contato criado com sucesso
+- `400 Bad Request` – Dados inválidos
+- `401 Unauthorized` – Token inválido ou ausente
+- `429 Too Many Requests` – Limite de requisições excedido
 
 ---
 
-## Plugins do Maven
+## 📩 Webhooks – Criação de contato
 
-- `swagger-codegen-maven-plugin` → Geração automática da API baseada no YAML do Swagger
-- `build-helper-maven-plugin` → Adiciona diretórios gerados automaticamente ao classpath
-- `spring-boot-maven-plugin` → Empacotamento da aplicação como um JAR executável
+**Endpoint:**
+```
+POST /api/v1/webhook/contact-creation
+```
+
+**Headers (opcional):**
+```
+X-HubSpot-Signature: {assinatura}
+X-HubSpot-Signature-Version: v1
+Content-Type: application/json
+```
+
+**Payload:**
+```json
+[
+  {
+    "objectId": 123456789,
+    "changeSource": "CRM",
+    "eventId": 987654321,
+    "subscriptionId": 111111,
+    "portalId": 222222,
+    "appId": 333333,
+    "occurredAt": 1687909200000,
+    "attemptNumber": 1,
+    "subscriptionType": "contact.creation",
+    "changeFlag": "NEW",
+    "sourceId": "contact"
+  }
+]
+```
+
+**Resposta esperada:** `200 OK`
 
 ---
 
-## Configuração e Execução
+## 📄 Swagger
 
-### **Requisitos**
-- **Java 21**
-- **Maven**
+Para visualização do swagger, basta copiar o conteúdo deste arquivo ```src/main/resources/endpoints/swagger_code_gen_project_meetime_backend.yaml``` e acessar o ```https://editor.swagger.io/```
+colando o contúdo, onde terá toda visão dos objetos e contratos de endpoints.
 
-### **Compilar e Rodar**
+### Exemplo: 
 
-```sh
-# Compilar o projeto
-mvn clean package
+![img_4.png](img_4.png)
 
-# Executar a aplicação
-mvn spring-boot:run
-```
-
-### **Executar Testes**
-
-```sh
-mvn test
-```
-
-### **Swagger UI**
-A documentação da API pode ser acessada após a inicialização da aplicação:
-
-```
-http://localhost:8000/swagger-ui.html
-```
-
-### **Configuração do Banco de Dados**
-
-Por padrão, a aplicação utiliza o **H2 Database** para testes locais. Para usar o **MySQL**, configure o `application.properties`:
-
-```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/project_erp
-    username: root
-    password: senha
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    database-platform: org.hibernate.dialect.MySQL8Dialect
-```
 ---
+## Exemplo em funcionamento com os logs do container hospedado na plataforma  ```https://railway.com```
+![img_1.png](img_1.png)
+![img_2.png](img_2.png)
+![img_3.png](img_3.png)
 
-## Autenticação e Segurança
-
-A API utiliza **JWT (JSON Web Token)** para autenticação e autorização. Para acessar endpoints protegidos, é necessário enviar um token no header:
-
-```
-Authorization: Bearer {token}
-```
-
-Endpoints de autenticação:
-
-- **`POST /auth/login`** → Gera um token JWT
-- **`GET /users/me`** → Retorna informações do usuário autenticado
+Como foi apresentado acima, foram criados logs específicos no controller para acompanhamento de todos endpoints e requests.
 
 ---
 
+## 📦 Dependências utilizadas no projeto `project-meetime`
 
-## Licença
+### 🧰 Spring Boot
 
-Este projeto está sob a licença **???**. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+- **spring-boot-starter-web**  
+  Fornece suporte para construção de aplicações web com Spring MVC, incluindo REST APIs.
+
+- **spring-boot-starter-webflux**  
+  Permite o uso de programação reativa com WebClient e Flux/Mono.
+
+- **spring-boot-devtools**  
+  Habilita o *hot reload* durante o desenvolvimento, facilitando a atualização automática da aplicação ao salvar arquivos.
+
+- **spring-boot-starter-test**  
+  Contém bibliotecas para testes, como JUnit, Mockito e Spring Test. (Não usei)
 
 ---
 
-**Desenvolvido por:** [???] 🚀
+### ⚙️ Swagger/OpenAPI
 
+- **swagger-core**  
+  Núcleo da biblioteca Swagger 2.x, usado para geração de documentação de APIs.
+
+- **swagger-annotations**  
+  Permite anotar os endpoints com informações que alimentam a documentação Swagger.
+
+- **swagger-codegen-maven-plugin**  
+  Gera código automaticamente a partir de arquivos OpenAPI/Swagger YAML/JSON.
+
+---
+
+### 🔄 Reatividade
+
+- **reactor-test**  
+  Utilitário para testes de streams reativos usando `StepVerifier`. (Não usei)
+
+---
+
+### 🛠 Utilitários
+
+- **lombok**  
+  Reduz boilerplate com anotações como `@Getter`, `@Setter`, `@Builder`, etc.
+
+- **jackson-databind-nullable**  
+  Suporte a campos opcionais com `JsonNullable`, usado em APIs geradas via OpenAPI.
+
+- **commons-lang**  
+  Utilitários adicionais para manipulação de strings, objetos, números, datas, etc.
+
+- **commons-collections**  
+  Conjuntos de coleções estendidas, como mapas bidirecionais, listas fixas, etc.
+
+- **commons-codec**  
+  Suporte a algoritmos de codificação/decodificação como Base64, SHA, MD5.
+
+- **mapstruct / mapstruct-processor**  
+  Framework para mapeamento automático entre DTOs e entidades (geração em tempo de compilação).
+
+---
+
+### 🌐 Servlet e Anotações - necessárias para geração de classes.
+
+- **jakarta.servlet-api**  
+  Interface da especificação Servlet 6.0 — 
+
+- **javax.servlet-api**  
+  Interface da especificação Servlet 4.0 — 
+
+- **javax.annotation-api**  
+
+---
+
+### 🔐 Segurança
+
+- **owasp.encoder**  
+  Utilitário para encoding seguro de dados, ajudando a prevenir ataques como XSS.
+
+---
+
+## 🛠️ Plugins do Maven
+
+- **swagger-codegen-maven-plugin**  
+  Automatiza a geração de modelos e interfaces a partir da especificação Swagger YAML.
+
+- **build-helper-maven-plugin**  
+  Adiciona diretórios de código-fonte gerado ao classpath de compilação do Maven.
+
+- **spring-boot-maven-plugin**  
+  Empacota a aplicação como um arquivo `.jar` executável com todas as dependências (fat JAR).
