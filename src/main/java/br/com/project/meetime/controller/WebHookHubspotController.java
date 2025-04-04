@@ -11,10 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -26,7 +23,10 @@ public class WebHookHubspotController extends BaseController implements Webhooks
     @CrossOrigin(origins = "*", methods = RequestMethod.POST)
     @PostMapping("/webhook/contact-creation")
     @Override
-    public ResponseEntity<Void> handleWebhook(List<WebhookHubspotCreateContact> contactRequest) {
+    public ResponseEntity<Void> handleWebhook(
+            @RequestBody final List<WebhookHubspotCreateContact> contactRequest,
+            @RequestHeader(name = "X-HubSpot-Signature", required = false) final String xHubSpotSignature,
+            @RequestHeader(name = "X-HubSpot-Signature-Version", required = false) final String xHubSpotSignatureVersion) {
 
         long initExecutionTime = System.currentTimeMillis();
         log.info(LogUtil.buildMessage("<< [INIT REQUEST][WEBHOOK HUBSPOT] PROCESSING >>")

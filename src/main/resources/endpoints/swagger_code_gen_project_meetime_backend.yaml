@@ -120,6 +120,16 @@ paths:
       description: Processes events of type "contact.creation" sent by HubSpot webhook.
       operationId: handleWebhook
       parameters:
+        - in: header
+          name: X-HubSpot-Signature
+          type: string
+          required: false
+          description: Signature Hubspot
+        - in: header
+          name: X-HubSpot-Signature-Version
+          type: string
+          required: false
+          description: Signature Hubspot
         - in: body
           name: WebhookEvent
           description: Webhook event data
