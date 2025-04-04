@@ -1,3 +1,5 @@
+# Caso queiram testar com minha API na RAILWAY:
+## Se estiver ativa ainda no free tier ```https://project-meetime-production.up.railway.app```
 # 📊 Project-Meetime-Backend
 
 Integração reativa com a API do **HubSpot CRM**, construída com **Java + Spring Boot + WebClient**, que permite:
