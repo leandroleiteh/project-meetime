@@ -12,10 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Log4j2
 @RequiredArgsConstructor
@@ -24,6 +21,7 @@ public class HubspotController extends BaseController implements ContactsApi {
 
     private final HubspotService hubspotService;
 
+    @CrossOrigin(origins = "*", methods = RequestMethod.POST)
     @PostMapping("/contact")
     @Override
     public ResponseEntity<Void> createContact(
