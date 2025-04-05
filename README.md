@@ -154,7 +154,7 @@ POST /api/v1/contact
 
 **Headers:**
 ```http
-Authorization: {access_token}
+token: {access_token} (apenas o token)
 Content-Type: application/json
 ```
 
