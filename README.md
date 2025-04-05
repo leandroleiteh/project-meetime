@@ -224,8 +224,7 @@ colando o contúdo, onde terá toda visão dos objetos e contratos de endpoints.
 
 ### Exemplo: 
 
-![img_4.png](img_4.png)
-
+![img_7.png](img_7.png)
 ---
 ## Exemplo em funcionamento com os logs do container hospedado na plataforma  ```https://railway.com```
 ![img_1.png](img_1.png)
