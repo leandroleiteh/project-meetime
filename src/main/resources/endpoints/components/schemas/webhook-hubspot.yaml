@@ -1,0 +1,33 @@
+WebhookHubspotCreateContactRequest:
+  type: array
+  items:
+    $ref: '#/WebhookHubspotCreateContact'
+
+WebhookHubspotCreateContact:
+  type: object
+  properties:
+    objectId:
+      type: integer
+      format: int64
+    changeSource:
+      type: string
+    eventId:
+      type: integer
+      format: int64
+    subscriptionId:
+      type: integer
+    portalId:
+      type: integer
+    appId:
+      type: integer
+    occurredAt:
+      type: integer
+      format: int64
+    attemptNumber:
+      type: integer
+    subscriptionType:
+      type: string
+    changeFlag:
+      type: string
+    sourceId:
+      type: string

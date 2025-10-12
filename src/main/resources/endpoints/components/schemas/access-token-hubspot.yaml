@@ -1,0 +1,12 @@
+type: object
+properties:
+  access_token:
+    type: string
+    example: "eyJhbGciOiJIUzI1..."
+  token_type:
+    type: string
+    example: "Bearer"
+  expires_in:
+    type: integer
+    example: 3600
+
