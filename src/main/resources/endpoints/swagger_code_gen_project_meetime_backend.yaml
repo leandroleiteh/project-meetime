@@ -1,4 +1,4 @@
-swagger: '2.0'
+openapi: 3.0.0
 info:
   version: '0.0.1'
   title: Project-Meetime-Backend
@@ -6,15 +6,11 @@ info:
   contact:
     name: Leandro
     email: leandroluz201616@gmail.com
-host: localhost:8080
-basePath: /api/v1
-schemes:
-  - http
-  - https
-consumes:
-  - application/json
-produces:
-  - application/json
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+  - url: https://localhost:8080/api/v1
+    description: Local development server (HTTPS)
 
 paths:
   /oauth2/authorize:
@@ -27,51 +23,63 @@ paths:
       responses:
         '200':
           description: Access token obtained successfully
-          schema:
-            type: string
-            example: "https://app.hubspot.com/oauth/authorize?client_id=998bfe92-a1u5-4cc6-ba2c-7ac56a328003&redirect_uri=http://localhost:8080/api/v1/oauth2/callback&scope=crm.objects.contacts.write%20oauth%20crm.objects.contacts.read"
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "https://app.hubspot.com/oauth/authorize?client_id=998bfe92-a1u5-4cc6-ba2c-7ac56a328003&redirect_uri=http://localhost:8080/api/v1/oauth2/callback&scope=crm.objects.contacts.write%20oauth%20crm.objects.contacts.read"
         '302':
           description: Redirect to HubSpot authorization URL
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /oauth2/callback:
     get:
       tags:
         - OAuth
       summary: Process OAuth callback from HubSpot
-      description: |
-        Handles the callback from HubSpot and exchanges the authorization code for an access token.
-        The client must provide the `code` received from HubSpot.
+      description: Handles the callback from HubSpot and exchanges the authorization code for an access token.
       operationId: handleOAuthCallback
       parameters:
-        - in: query
-          name: code
+        - name: code
+          in: query
           description: Authorization code provided by HubSpot
           required: true
-          type: string
+          schema:
+            type: string
       responses:
-        "200":
+        '200':
           description: Access token obtained successfully
-          schema:
-            $ref: "#/definitions/AccessTokenHubspotResponse"
-          x-java-type: CompletableFuture
-        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessTokenHubspotResponse'
+        '400':
           description: Bad Request
-          schema:
-            $ref: "#/definitions/Error"
-        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
           description: Authorization Failed
-          schema:
-            $ref: "#/definitions/Error"
-        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
           description: Internal Server Error
-          schema:
-            $ref: "#/definitions/Error"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /contact:
     post:
@@ -80,37 +88,41 @@ paths:
       summary: Create a new contact in HubSpot
       description: Creates a new contact in HubSpot CRM.
       operationId: createContact
-      parameters:
-        - in: header
-          name: Authorization
-          description: Access token
-          required: true
-          type: string
-        - in: body
-          name: Contact
-          description: Contact details
-          required: true
-          schema:
-            $ref: '#/definitions/ContactRequest'
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactRequest'
       responses:
         '201':
           description: Contact created successfully
         '400':
           description: Bad Request
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Authorization Failed
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '429':
           description: Too many requests
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /webhook/contact-creation:
     post:
@@ -120,123 +132,128 @@ paths:
       description: Processes events of type "contact.creation" sent by HubSpot webhook.
       operationId: handleWebhook
       parameters:
-        - in: header
-          name: X-HubSpot-Signature
-          type: string
+        - name: X-HubSpot-Signature
+          in: header
           required: false
-          description: Signature Hubspot
-        - in: header
-          name: X-HubSpot-Signature-Version
-          type: string
-          required: false
-          description: Signature Hubspot
-        - in: body
-          name: WebhookEvent
-          description: Webhook event data
-          required: true
           schema:
-            $ref: '#/definitions/WebhookHubspotCreateContactRequest'
+            type: string
+        - name: X-HubSpot-Signature-Version
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookHubspotCreateContactRequest'
       responses:
         '200':
           description: Event processed successfully
         '400':
           description: Bad Request
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Authorization Failed
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
-securityDefinitions:
-  BearerAuth:
-    type: apiKey
-    name: Authorization
-    in: header
-    description: >
-      Insert the JWT token in the format: "Bearer {token}"
+  /storage/upload:
+    post:
+      tags:
+        - Storage Lambda AWS
+      summary: Upload file to S3
+      description: Upload a file to AWS S3 bucket directly through Lambda
+      operationId: uploadFileToS3
+      x-amazon-apigateway-integration:
+        uri: arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${LambdaFunctionArn}/invocations
+        type: aws_proxy
+        httpMethod: POST
+        credentials: arn:aws:iam::${account}:role/${role}
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                path:
+                  type: string
+              required:
+                - file
+                - path
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    description: The URL of the uploaded file
+                    example: "https://my-bucket.s3.amazonaws.com/folder/file.pdf"
+                  key:
+                    type: string
+                    description: The S3 key of the uploaded file
+                    example: "folder/file.pdf"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    AccessTokenHubspotResponse:
+      $ref: './components/schemas/access-token-hubspot.yaml'
+    ContactRequest:
+      $ref: './components/schemas/contact-request.yaml'
+    Contact:
+      $ref: './components/schemas/contact.yaml'
+    WebhookHubspotCreateContactRequest:
+      $ref: './components/schemas/webhook-hubspot.yaml#/WebhookHubspotCreateContactRequest'
+    WebhookHubspotCreateContact:
+      $ref: './components/schemas/webhook-hubspot.yaml#/WebhookHubspotCreateContact'
+    Error:
+      $ref: './components/schemas/error.yaml'
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        Insert the JWT token in the format: "Bearer {token}"
 
 security:
   - BearerAuth: []
-
-definitions:
-
-  AccessTokenHubspotResponse:
-    type: object
-    properties:
-      access_token:
-        type: string
-        example: "eyJhbGciOiJIUzI1..."
-      token_type:
-        type: string
-        example: "Bearer"
-      expires_in:
-        type: integer
-        example: 3600
-
-  ContactRequest:
-    type: object
-    properties:
-      properties:
-        $ref: '#/definitions/Contact'
-
-  Contact:
-    type: object
-    properties:
-      firstname:
-        type: string
-      lastname:
-        type: string
-      email:
-        type: string
-
-  WebhookHubspotCreateContactRequest:
-    type: array
-    items:
-      $ref: '#/definitions/WebhookHubspotCreateContact'
-
-
-  WebhookHubspotCreateContact:
-    type: object
-    properties:
-      objectId:
-        type: integer
-        format: int64
-      changeSource:
-        type: string
-      eventId:
-        type: integer
-        format: int64
-      subscriptionId:
-        type: integer
-      portalId:
-        type: integer
-      appId:
-        type: integer
-      occurredAt:
-        type: integer
-        format: int64
-      attemptNumber:
-        type: integer
-      subscriptionType:
-        type: string
-      changeFlag:
-        type: string
-      sourceId:
-        type: string
-
-  Error:
-    type: array
-    items:
-      required:
-        - code
-        - message
-      properties:
-        code:
-          type: string
-        message:
-          type: string

@@ -13,6 +13,11 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.validation.Valid;
+import java.util.Objects;
 
 @Log4j2
 @RequiredArgsConstructor
@@ -21,19 +26,16 @@ public class HubspotController extends BaseController implements ContactsApi {
 
     private final HubspotService hubspotService;
 
-    @CrossOrigin(origins = "*", methods = RequestMethod.POST)
-    @PostMapping("/contact")
     @Override
-    public ResponseEntity<Void> createContact(
-            @RequestHeader("token") final String token,
-            @RequestBody final ContactRequest contactRequest) {
-
+    public ResponseEntity<Void> createContact(@Valid @RequestBody final ContactRequest contactRequest) {
         long initExecutionTime = System.currentTimeMillis();
+        var authorization = getAuthorizationHeader();
+
         log.info(LogUtil.buildMessage("<< [INIT REQUEST][CREATE CONTACTION] PROCESSING >>")
                 .with(ObservabilityTagConstant.Info.PAGE, HubspotEndpointEnum.CREATE_CONTACT.getPath())
                 .with(ObservabilityTagConstant.Info.ACTION, ActionEnum.SAVE));
 
-        hubspotService.createContact(token, contactRequest);
+        hubspotService.createContact(authorization, contactRequest);
 
         log.info(LogUtil.buildMessage("<< [END REQUEST][CREATE CONTACTION] PROCESSING, SUCCESSFUL >>")
                 .with(ObservabilityTagConstant.Info.PAGE, HubspotEndpointEnum.CREATE_CONTACT.getPath())
@@ -43,5 +45,11 @@ public class HubspotController extends BaseController implements ContactsApi {
                         (System.currentTimeMillis() - initExecutionTime)));
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    private String getAuthorizationHeader() {
+        return ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes()))
+                .getRequest()
+                .getHeader("Authorization");
     }
 }
